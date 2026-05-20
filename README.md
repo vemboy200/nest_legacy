@@ -171,11 +171,22 @@ You will be asked to select your account type. Follow the instructions below bas
 For accounts migrated to Google, or created after August 2019. You will need to retrieve an `issue_token` and `cookies` from your browser.
 
 ⚠️ **CRITICAL BROWSER WARNING:** **Do NOT use Google Chrome or Microsoft Edge** to get these cookies. Chromium-based browsers use aggressive, hardware-bound security sessions with Google. If you use Chrome, your integration will authenticate successfully but will fail after a few hours or immediately upon restarting Home Assistant. Spoofing the User-Agent in Chrome will not bypass this.
-**You MUST use Safari or Firefox (Private/Incognito mode recommended)** to capture a long-lived cookie.
+**You MUST use Safari or Firefox** to capture a long-lived cookie.
+
+#### Recommended Method: Nest Token Extractor (Easiest)
+
+We recommend using the **[Nest Token Extractor](https://github.com/tronikos/nest-token-extractor)** browser extension to automatically capture and format these credentials for you in seconds.
+1. Install the extension for **Firefox** or **Safari** (do not use Chrome).
+2. Open the extension, choose your environment, and click **Open Nest & Start Extraction**.
+3. Sign in to your account. Copy the extracted **Issue Token** and **Cookies** straight into Home Assistant!
+4. *Firefox Users:* If the Cookies field remains blank, click the **Shield** icon in your Firefox address bar on `home.nest.com` and toggle off **Enhanced Tracking Protection**, then retry.
+
+#### Manual Method
 
 (Instructions adapted from the `homebridge-nest` project).
 
-1. Open a **Safari** or **Firefox** browser tab in Private/Incognito Mode.
+1. Open a **Safari** or **Firefox** browser tab (Private/Incognito Mode recommended).
+   - **Firefox Users:** If using Firefox, you **MUST** click on the **Shield** icon in the Firefox address bar on `home.nest.com` and uncheck/toggle off **Enhanced Tracking Protection**. If ETP is enabled, Firefox blocks or isolates Google's cookies inside the nested iframe, resulting in `Invalid authentication` in Home Assistant.
 2. Open Developer Tools (usually right-click -> Inspect, or in Safari: Develop -> Show Web Inspector).
 3. Click on the **Network** tab. Make sure **Preserve Log** (or "Persist Logs") is checked.
 4. In the 'Filter' box, enter `issueToken`.
