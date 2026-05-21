@@ -185,8 +185,9 @@ We recommend using the **[Nest Token Extractor](https://github.com/tronikos/nest
 
 (Instructions adapted from the `homebridge-nest` project).
 
-1. Open a **Safari** or **Firefox** browser tab (Private/Incognito Mode recommended).
-   - **Firefox Users:** If using Firefox, you **MUST** click on the **Shield** icon in the Firefox address bar on `home.nest.com` and uncheck/toggle off **Enhanced Tracking Protection**. If ETP is enabled, Firefox blocks or isolates Google's cookies inside the nested iframe, resulting in `Invalid authentication` in Home Assistant.
+1. Open a **Safari** or **Firefox** browser tab.
+   - **Do NOT use Private/Incognito mode in Firefox**, as it enforces strict cookie isolation that will result in a "No active session found" error, even if tracking protection is disabled.
+   - **Firefox Users:** You **MUST** click on the **Shield** icon in the Firefox address bar on `home.nest.com` and uncheck/toggle off **Enhanced Tracking Protection** (both on `home.nest.com` and `accounts.google.com` if prompted). If ETP is enabled, Firefox blocks or isolates Google's cookies inside the nested iframe, resulting in `Invalid authentication` in Home Assistant.
 2. Open Developer Tools (usually right-click -> Inspect, or in Safari: Develop -> Show Web Inspector).
 3. Click on the **Network** tab. Make sure **Preserve Log** (or "Persist Logs") is checked.
 4. In the 'Filter' box, enter `issueToken`.
@@ -224,6 +225,7 @@ Once set up, you can click "Configure" on the integration entry to tweak setting
 ## Troubleshooting
 
 - **Authentication Errors:** If you receive authentication errors, your cookies or tokens may have expired. You will need to re-fetch them using the steps above and use the "Reconfigure" option in the integration.
+- **"No active session found" / Invalid authentication on setup:** If your debug logs show `BadCredentialsException('No active session found.')`, the cookies you provided did not contain a valid Google login session. This is almost always caused by browser privacy settings (like Firefox's Enhanced Tracking Protection) or using a Private/Incognito window which isolates cross-site cookies. Try again in a normal window (you can create a fresh browser profile if you want to avoid logging out of your primary account) or use the recommended **Nest Token Extractor** extension.
 - **Missing Devices:** Ensure your devices are visible in the Nest app. Some newer Google Nest devices (like the 2021+ battery cameras) are exclusively on the Google Home app and may not appear here, or may have limited functionality via the legacy API.
 
 ## Credits
