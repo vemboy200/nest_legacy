@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import dataclasses
 from collections.abc import Generator
+import sys
+import types
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -15,6 +18,22 @@ if not hasattr(_config_entries, "OptionsFlowWithReload"):
     # exercised locally; CI installs a current homeassistant where the real
     # class (which also reloads the entry after save) is used.
     _config_entries.OptionsFlowWithReload = _config_entries.OptionsFlow
+
+if "homeassistant.helpers.service_info.dhcp" not in sys.modules:
+    # Local sandbox pins an older homeassistant release that predates the
+    # helpers.service_info.dhcp module (DhcpServiceInfo used to live in
+    # homeassistant.components.dhcp, which pulls in aiodhcpwatcher). This
+    # shim only exists so the test suite can be exercised locally; CI
+    # installs a current homeassistant where the real module is used.
+    @dataclasses.dataclass
+    class _DhcpServiceInfo:
+        ip: str
+        hostname: str
+        macaddress: str
+
+    _dhcp_module = types.ModuleType("homeassistant.helpers.service_info.dhcp")
+    _dhcp_module.DhcpServiceInfo = _DhcpServiceInfo
+    sys.modules["homeassistant.helpers.service_info.dhcp"] = _dhcp_module
 
 import custom_components.nest_legacy.config_flow  # noqa: F401
 import custom_components.nest_legacy.coordinator  # noqa: F401

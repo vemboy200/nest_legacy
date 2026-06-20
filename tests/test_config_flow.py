@@ -10,6 +10,7 @@ import pytest
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.helpers.service_info.dhcp import DhcpServiceInfo
 
 from custom_components.nest_legacy.const import (
     CONF_ACCESS_TOKEN,
@@ -131,6 +132,45 @@ async def test_duplicate_entry_aborts(
     )
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_ACCESS_TOKEN: "access-token"}
+    )
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "already_configured"
+
+
+async def test_dhcp_discovery_shows_user_form(
+    hass: HomeAssistant, mock_nest_client: AsyncMock
+) -> None:
+    """DHCP discovery with no existing entry starts the normal user flow."""
+    discovery_info = DhcpServiceInfo(
+        ip="192.168.1.5", hostname="nest-thermostat", macaddress="18b430aabbcc"
+    )
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": config_entries.SOURCE_DHCP},
+        data=discovery_info,
+    )
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "user"
+
+
+async def test_dhcp_discovery_aborts_if_already_configured(
+    hass: HomeAssistant, mock_nest_client: AsyncMock
+) -> None:
+    """DHCP discovery aborts when a Nest Legacy entry already exists."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id="user-123",
+        data={CONF_ACCOUNT_TYPE: "nest", CONF_ACCESS_TOKEN: "access-token"},
+    )
+    entry.add_to_hass(hass)
+
+    discovery_info = DhcpServiceInfo(
+        ip="192.168.1.5", hostname="nest-thermostat", macaddress="18b430aabbcc"
+    )
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": config_entries.SOURCE_DHCP},
+        data=discovery_info,
     )
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "already_configured"
