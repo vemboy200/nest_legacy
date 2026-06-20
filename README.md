@@ -147,6 +147,57 @@ Deletes the access schedule for a user on a device.
   - `device_id` (Required): The lock device to target.
   - `user_id` (Required): The user or guest resource ID (e.g., `GUEST_1234`).
 
+## Automation Examples
+
+### Notify when Nest Protect detects smoke or CO
+
+```yaml
+automation:
+  - trigger:
+      - trigger: state
+        entity_id: binary_sensor.nest_protect_smoke
+        to: "on"
+      - trigger: state
+        entity_id: binary_sensor.nest_protect_co
+        to: "on"
+    actions:
+      - action: notify.mobile_app
+        data:
+          title: "Nest Protect Alert"
+          message: "{{ trigger.to_state.attributes.friendly_name }} detected a hazard!"
+```
+
+### Turn on lights when the doorbell detects a person
+
+```yaml
+automation:
+  - trigger:
+      - trigger: state
+        entity_id: event.front_door_motion
+        attribute: event_type
+    condition:
+      - condition: template
+        value_template: "{{ trigger.to_state.attributes.event_type == 'camera_person' }}"
+    actions:
+      - action: light.turn_on
+        target:
+          entity_id: light.entryway
+```
+
+### List guests and notify when a new one is added
+
+```yaml
+script:
+  list_nest_guests:
+    sequence:
+      - action: nest_legacy.list_guests
+        response_variable: guest_response
+      - action: notify.mobile_app
+        data:
+          title: "Nest Guests"
+          message: "{{ guest_response.guests | length }} guest(s) configured."
+```
+
 ## Installation
 
 ### HACS
