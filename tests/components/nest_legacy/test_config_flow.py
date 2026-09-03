@@ -27,10 +27,11 @@ from custom_components.nest_legacy.pynest.exceptions import (
 from custom_components.nest_legacy.pynest.models import NestSession
 import pytest
 
-from homeassistant.config_entries import SOURCE_USER
+from homeassistant.config_entries import SOURCE_DHCP, SOURCE_USER
 from homeassistant.const import CONF_ACCESS_TOKEN
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.helpers.service_info.dhcp import DhcpServiceInfo
 
 from .conftest import EMAIL, USER_ID
 
@@ -183,6 +184,43 @@ async def test_duplicate_account_aborts(
 
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "already_configured"
+
+
+async def test_dhcp_discovery_aborts_if_already_configured(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+) -> None:
+    """DHCP discovery aborts when an entry already exists."""
+    mock_config_entry.add_to_hass(hass)
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": SOURCE_DHCP},
+        data=DhcpServiceInfo(
+            ip="192.168.1.5",
+            hostname="nest",
+            macaddress="18b430aabbcc",
+        ),
+    )
+
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "already_configured"
+
+
+async def test_dhcp_discovery_starts_user_flow(hass: HomeAssistant) -> None:
+    """DHCP discovery falls through to the normal account setup flow."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": SOURCE_DHCP},
+        data=DhcpServiceInfo(
+            ip="192.168.1.5",
+            hostname="nest",
+            macaddress="18b430aabbcc",
+        ),
+    )
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "user"
 
 
 async def test_reauth(
