@@ -287,6 +287,57 @@ This integration would not be possible without the extensive research and work d
 <img width="30%" alt="image" src="https://github.com/user-attachments/assets/87f2d922-959d-4007-b715-3bd1aacb935b" />
 <img width="30%" alt="image" src="https://github.com/user-attachments/assets/7955d2eb-c72b-485b-96e6-b05772b73970" />
 
+## Automation Examples
+
+### Notify when Nest Protect detects smoke or CO
+
+```yaml
+automation:
+  - trigger:
+      - trigger: state
+        entity_id: binary_sensor.nest_protect_smoke
+        to: "on"
+      - trigger: state
+        entity_id: binary_sensor.nest_protect_co
+        to: "on"
+    actions:
+      - action: notify.mobile_app
+        data:
+          title: "Nest Protect Alert"
+          message: "{{ trigger.to_state.attributes.friendly_name }} detected a hazard!"
+```
+
+### Turn on lights when the doorbell detects a person
+
+```yaml
+automation:
+  - trigger:
+      - trigger: state
+        entity_id: event.front_door_motion
+        attribute: event_type
+    condition:
+      - condition: template
+        value_template: "{{ trigger.to_state.attributes.event_type == 'camera_person' }}"
+    actions:
+      - action: light.turn_on
+        target:
+          entity_id: light.entryway
+```
+
+### List guests and notify when a new one is added
+
+```yaml
+script:
+  list_nest_guests:
+    sequence:
+      - action: nest_legacy.list_guests
+        response_variable: guest_response
+      - action: notify.mobile_app
+        data:
+          title: "Nest Guests"
+          message: "{{ guest_response.guests | length }} guest(s) configured."
+```
+
 ## Disclaimer
 
 This is a personal hobby project and is not affiliated with Google or Nest. It uses an unofficial API that could be changed or discontinued by Google at any time, which may cause this integration to stop working. It is provided "as-is," with no warranty whatsoever. Use at your own risk.
